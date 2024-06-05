@@ -8,10 +8,14 @@ public class UIHandler : MonoBehaviour
     // Lijsten met kaarten voor elke fase
     public List<GameObject> geluidsOverlastKaarten; // Lijst van geluidsoverlastkaarten voor elke fase
     public List<GameObject> stikstofDioxideKaarten; // Lijst van stikstofdioxidekaarten voor elke fase
-    
+
+    // Canvases for LegendaGeluidsOverlast and LegendaStikstofdioxide
+    public Canvas legendaGeluidsOverlastCanvas; // Canvas for LegendaGeluidsOverlast
+    public Canvas legendaStikstofdioxideCanvas; // Canvas for LegendaStikstofdioxide
+
     // Lijst van knoppen voor de indicatoren (geluidsoverlast en stikstofdioxide)
     public List<Button> indicatorButtons; // Lijst van indicator knoppen
-    
+
     // Lijst van knoppen voor de verschillende fases
     public List<Button> faseButtons; // Lijst van fase knoppen
 
@@ -38,6 +42,7 @@ public class UIHandler : MonoBehaviour
         showingNoisePollution = true; // Zet de status naar geluidsoverlast
         UpdateKaarten(); // Update de weergegeven kaarten
         UpdateIndicatorButtonColors(); // Update de kleuren van de indicator knoppen
+        SwitchCanvas(); // Switch to the corresponding canvas
     }
 
     // Methode om stikstofdioxidekaart weer te geven
@@ -46,6 +51,7 @@ public class UIHandler : MonoBehaviour
         showingNoisePollution = false; // Zet de status naar stikstofdioxide
         UpdateKaarten(); // Update de weergegeven kaarten
         UpdateIndicatorButtonColors(); // Update de kleuren van de indicator knoppen
+        SwitchCanvas(); // Switch to the corresponding canvas
     }
 
     // Methode om de juiste kaarten te activeren op basis van de huidige fase en indicator status
@@ -92,7 +98,7 @@ public class UIHandler : MonoBehaviour
             // Haal de Image component op van de knoppen
             Image activeImage = activeButton.GetComponent<Image>();
             Image inactiveImage = inactiveButton.GetComponent<Image>();
-            
+
             if (activeImage != null && inactiveImage != null)
             {
                 // Stel de kleuren in
@@ -131,6 +137,20 @@ public class UIHandler : MonoBehaviour
             {
                 faseButtons[i].image.color = defaultColor; // Stel de kleur in voor de inactieve fase knoppen
             }
+        }
+    }
+
+    // Methode om canvases te wisselen
+    private void SwitchCanvas()
+    {
+        if (legendaGeluidsOverlastCanvas != null && legendaStikstofdioxideCanvas != null)
+        {
+            legendaGeluidsOverlastCanvas.gameObject.SetActive(showingNoisePollution);
+            legendaStikstofdioxideCanvas.gameObject.SetActive(!showingNoisePollution);
+        }
+        else
+        {
+            Debug.LogWarning("One of the canvas references is missing!");
         }
     }
 }
