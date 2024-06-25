@@ -2,155 +2,207 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class UIHandler : MonoBehaviour
 {
-    // Lijsten met kaarten voor elke fase
-    public List<GameObject> geluidsOverlastKaarten; // Lijst van geluidsoverlastkaarten voor elke fase
-    public List<GameObject> stikstofDioxideKaarten; // Lijst van stikstofdioxidekaarten voor elke fase
-
-    // Canvases for LegendaGeluidsOverlast and LegendaStikstofdioxide
-    public Canvas legendaGeluidsOverlastCanvas; // Canvas for LegendaGeluidsOverlast
-    public Canvas legendaStikstofdioxideCanvas; // Canvas for LegendaStikstofdioxide
-
-    // Lijst van knoppen voor de indicatoren (geluidsoverlast en stikstofdioxide)
-    public List<Button> indicatorButtons; // Lijst van indicator knoppen
-
-    // Lijst van knoppen voor de verschillende fases
-    public List<Button> faseButtons; // Lijst van fase knoppen
-
-    // Kleuren voor actieve en inactieve knoppen
-    private Color defaultColor = new Color32(164, 187, 221, 255); // A4BBDD
+    public List<GameObject> noisePollutionMaps; 
+    public List<GameObject> nitrogenDioxideMaps; 
+    public Canvas noisePollutionLegendCanvas; 
+    public Canvas nitrogenDioxideLegendCanvas; 
+    public List<Button> indicatorButtons; 
+    public TMP_Text ggoScoresText; 
+    public Button ggoScoreButton; 
+    public TMP_Text phaseDescriptionText; // Add this
+    public Button phaseDescriptionButton; // Add this
+    private int currentPhase = 0;
+    private bool showingNoisePollution = true;
+    private Color defaultColor = new Color32(199, 212, 231, 255); // C7D4E7
     private Color activeColor = new Color32(47, 121, 231, 255); // 2F79E7
 
-    // Huidige actieve fase en indicator status
-    private int currentPhase = 0; // Houdt bij welke fase momenteel actief is
-    private bool showingNoisePollution = true; // Houdt bij welke kaart momenteel wordt weergegeven (geluidsoverlast of stikstofdioxide)
+    // Scores voor elke fase
+    private Dictionary<int, List<float>> phaseScores = new Dictionary<int, List<float>>()
+    {
+        { 0, new List<float> { 8.6f, 10.0f, 8.7f, 10.0f, 10.0f, 10.0f, 7.5f } },
+        { 1, new List<float> { 9.0f, 8.7f, 8.7f, 10.0f, 10.0f, 10.0f, 8.3f } },
+        { 2, new List<float> { 9.0f, 8.7f, 8.9f, 10.0f, 8.4f, 10.0f, 7.5f } },
+        { 3, new List<float> { 9.0f, 8.7f, 8.9f, 9.0f, 8.4f, 10.0f, 7.6f } },
+        { 4, new List<float> { 9.0f, 8.7f, 8.9f, 9.0f, 8.9f, 10.0f, 7.6f } },
+        { 5, new List<float> { 9.0f, 8.7f, 9.0f, 9.0f, 9.0f, 9.0f, 8.6f } }
+    };
 
-    // Start is called before the first frame update
+    // Descriptions for each phase
+    private Dictionary<int, string> phaseDescriptions = new Dictionary<int, string>()
+    {
+        { 0, "De indeling is van fase 1 t/m 6 overgenomen uit het omgevingsplan van het koersdocument 2017. Hierbij zijn de woningen ontworpen in Tygron zelf. Dit is een schets van de werkelijkheid. Hierdoor zijn het aantal woningen van de Cartesius driehoek in Tygron ook verschillend van de werkelijk aantal woningen. Het aantal auto’s, vrachtwagens en busjes is ook in elke fase gelijk. Namelijk 40 auto’s, 20 busjes en 15 vrachtwagens." },
+        { 1, "Verschil fase 1 en 2: Toename van het aantal woningen van 650 naar 1890. Verwijdering van de weg rondom het CAB-gebouw, wat de verkeersroutes veranderde en minder geluidsoverlast creëerde." },
+        { 2, "Verschil fase 2 en 3: Verandering van de verkeersroutes waardoor het verkeer via de Locomotiefstraat werd geleid en omgeving CAB-gebouw autoluw werd. Door de verkeersverandering nu meer woningen met geluidoverlast." },
+        { 3, "Verschil fase 3 en 4: Verdere toevoeging van woningen en herstructurering van de verkeersroutes. Blijven gebruik van de Locomotiefstraat voor verkeersaanvoer, wat enige extra belasting kan hebben veroorzaakt, maar door de extra woningen in gebied met relatief weinig geluidsoverlast score omhoog." },
+        { 4, "Verschil fase 4 en 5: Geen significante verandering in de verkeersroutes of verkeersintensiteit ten opzichte van fase 4. Verkeersaanvoer blijft via de Locomotiefstraat gaan, hierdoor geen verandering in scores." },
+        { 5, "Verschil fase 5 en 6: Voltooing van alle bouwfases, wat zorgde voor verwijdering van alle wegen binnen het Cartesiusgebied en een autoluwe zone realiseerde. Hierdoor minder verkeersgeluidbelasting in het gebied en verbeterde leefbaarheid." }
+    };
+
     void Start()
     {
         // Initial state: maak fase 1 actief en laat geluidsoverlastkaart van fase 1 zien
-        SetActivePhase(0); // Maak fase 1 actief en update knoppen
-        ShowgeluidsOverlastKaart(); // Laat de geluidsoverlastkaart zien
-        UpdateIndicatorButtonColors(); // Update de kleuren van de indicator knoppen
+        SetActivePhase(0); 
+        ShowNoisePollutionMap(); 
+        UpdateIndicatorButtonColors(); 
     }
 
-    // Methode om geluidsoverlastkaart weer te geven
-    public void ShowgeluidsOverlastKaart()
+    public void ShowNoisePollutionMap()
     {
-        showingNoisePollution = true; // Zet de status naar geluidsoverlast
-        UpdateKaarten(); // Update de weergegeven kaarten
-        UpdateIndicatorButtonColors(); // Update de kleuren van de indicator knoppen
-        SwitchCanvas(); // Switch to the corresponding canvas
+        showingNoisePollution = true; 
+        UpdateMaps(); 
+        UpdateIndicatorButtonColors(); 
+        SwitchCanvas(); 
+        UpdateScores(); 
+        ShowNoisePollutionScoresTextAndButton();
     }
 
-    // Methode om stikstofdioxidekaart weer te geven
-    public void ShowstikstofDioxideKaart()
+    public void ShowNitrogenDioxideMap()
     {
-        showingNoisePollution = false; // Zet de status naar stikstofdioxide
-        UpdateKaarten(); // Update de weergegeven kaarten
-        UpdateIndicatorButtonColors(); // Update de kleuren van de indicator knoppen
-        SwitchCanvas(); // Switch to the corresponding canvas
+        showingNoisePollution = false; 
+        UpdateMaps(); 
+        UpdateIndicatorButtonColors(); 
+        SwitchCanvas(); 
+        HideNoisePollutionScoresTextAndButton(); 
     }
 
     // Methode om de juiste kaarten te activeren op basis van de huidige fase en indicator status
-    private void UpdateKaarten()
+    private void UpdateMaps()
     {
-        for (int i = 0; i < geluidsOverlastKaarten.Count; i++)
+        for (int phase = 0; phase < noisePollutionMaps.Count; phase++)
         {
-            if (i == currentPhase)
+            if (phase == currentPhase)
             {
                 // Activeer de juiste kaart voor de huidige fase en indicator status
-                geluidsOverlastKaarten[i].SetActive(showingNoisePollution);
-                stikstofDioxideKaarten[i].SetActive(!showingNoisePollution);
+                noisePollutionMaps[phase].SetActive(showingNoisePollution);
+                nitrogenDioxideMaps[phase].SetActive(!showingNoisePollution);
             }
             else
             {
                 // Deactiveer alle kaarten voor niet-actieve fases
-                geluidsOverlastKaarten[i].SetActive(false);
-                stikstofDioxideKaarten[i].SetActive(false);
+                noisePollutionMaps[phase].SetActive(false);
+                nitrogenDioxideMaps[phase].SetActive(false);
             }
         }
     }
 
-    // Methode om de kleuren van de indicator knoppen bij te werken
     private void UpdateIndicatorButtonColors()
     {
-        if (indicatorButtons.Count >= 2)
-        {
-            // Bepaal welke knoppen actief en inactief zijn
-            Button activeButton = showingNoisePollution ? indicatorButtons[0] : indicatorButtons[1];
-            Button inactiveButton = showingNoisePollution ? indicatorButtons[1] : indicatorButtons[0];
-            SetButtonColors(activeButton, inactiveButton); // Update de knoppenkleuren
-        }
-        else
+        if (indicatorButtons.Count < 2)
         {
             Debug.LogWarning("Indicator buttons list does not contain enough buttons!");
+            return;
         }
+        
+        // Bepaal welke knoppen actief en inactief zijn en zet de juiste kleuren
+        Button activeButton = showingNoisePollution ? indicatorButtons[0] : indicatorButtons[1];
+        Button inactiveButton = showingNoisePollution ? indicatorButtons[1] : indicatorButtons[0];
+        SetButtonColors(activeButton, inactiveButton);
     }
 
-    // Methode om de kleuren van de knoppen in te stellen
     private void SetButtonColors(Button activeButton, Button inactiveButton)
     {
-        if (activeButton != null && inactiveButton != null)
-        {
-            // Haal de Image component op van de knoppen
-            Image activeImage = activeButton.GetComponent<Image>();
-            Image inactiveImage = inactiveButton.GetComponent<Image>();
-
-            if (activeImage != null && inactiveImage != null)
-            {
-                // Stel de kleuren in
-                activeImage.color = activeColor;
-                inactiveImage.color = defaultColor;
-            }
-            else
-            {
-                Debug.LogWarning("One of the buttons is missing an Image component!");
-            }
-        }
-        else
+        if (activeButton == null || inactiveButton == null)
         {
             Debug.LogWarning("One of the buttons is null!");
+            return;
         }
+
+        Image activeImage = activeButton.GetComponent<Image>();
+        Image inactiveImage = inactiveButton.GetComponent<Image>();
+
+        if (activeImage == null || inactiveImage == null)
+        {
+            Debug.LogWarning("One of the buttons is missing an Image component!");
+            return;
+        }
+
+        activeImage.color = activeColor;
+        inactiveImage.color = defaultColor;
     }
 
-    // Methode om de actieve fase te veranderen
     public void SetActivePhase(int phaseIndex)
     {
-        currentPhase = phaseIndex; // Stel de huidige fase in
-        UpdatePhaseButtons(); // Update de kleuren van de fase knoppen
-        UpdateKaarten(); // Zorg ervoor dat de juiste kaart voor de fase wordt getoond
-    }
-
-    // Methode om de kleuren van de fase knoppen bij te werken
-    private void UpdatePhaseButtons()
-    {
-        for (int i = 0; i < faseButtons.Count; i++)
+        currentPhase = phaseIndex;
+        UpdateMaps(); 
+        if (showingNoisePollution)
         {
-            if (i == currentPhase)
-            {
-                faseButtons[i].image.color = activeColor; // Stel de kleur in voor de actieve fase knop
-            }
-            else
-            {
-                faseButtons[i].image.color = defaultColor; // Stel de kleur in voor de inactieve fase knoppen
-            }
+            UpdateScores();
         }
+        UpdatePhaseDescription();
     }
 
-    // Methode om canvases te wisselen
     private void SwitchCanvas()
     {
-        if (legendaGeluidsOverlastCanvas != null && legendaStikstofdioxideCanvas != null)
+        if (noisePollutionLegendCanvas != null && nitrogenDioxideLegendCanvas != null)
         {
-            legendaGeluidsOverlastCanvas.gameObject.SetActive(showingNoisePollution);
-            legendaStikstofdioxideCanvas.gameObject.SetActive(!showingNoisePollution);
+            noisePollutionLegendCanvas.gameObject.SetActive(showingNoisePollution);
+            nitrogenDioxideLegendCanvas.gameObject.SetActive(!showingNoisePollution);
         }
         else
         {
             Debug.LogWarning("One of the canvas references is missing!");
+        }
+    }
+
+    private void UpdateScores()
+    {
+        if (ggoScoresText != null)
+        {
+            List<float> scores = phaseScores[currentPhase];
+            ggoScoresText.text = "GGO Score\nGeluidsoverlast verkeer\n";
+            ggoScoresText.text += $"\nCartesius driehoek: {scores[6]}\n";
+            ggoScoresText.gameObject.SetActive(true); 
+        }
+        else
+        {
+            Debug.LogWarning("Scores text component is missing!");
+        }
+    }
+
+    private void HideNoisePollutionScoresTextAndButton()
+    {
+        if (ggoScoresText != null)
+        {
+            ggoScoresText.gameObject.SetActive(false); 
+            ggoScoreButton.gameObject.SetActive(false); 
+            phaseDescriptionText.gameObject.SetActive(false);
+            phaseDescriptionButton.gameObject.SetActive(false);
+        }
+        else
+        {
+            Debug.LogWarning("Scores text component is missing!");
+        }
+    }
+
+    private void ShowNoisePollutionScoresTextAndButton()
+    {
+        if (ggoScoresText != null)
+        {
+            ggoScoresText.gameObject.SetActive(true); 
+            ggoScoreButton.gameObject.SetActive(true); 
+            phaseDescriptionText.gameObject.SetActive(true);
+            phaseDescriptionButton.gameObject.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("Scores text component is missing!");
+        }
+    }
+
+    private void UpdatePhaseDescription()
+    {
+        if (phaseDescriptionText != null)
+        {
+            phaseDescriptionText.text = phaseDescriptions[currentPhase];
+            phaseDescriptionText.gameObject.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("Phase description text component is missing!");
         }
     }
 }
