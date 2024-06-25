@@ -13,8 +13,9 @@ public class UIHandler : MonoBehaviour
     public List<Button> indicatorButtons; 
     public TMP_Text ggoScoresText; 
     public Button ggoScoreButton; 
-    public TMP_Text phaseDescriptionText; // Add this
-    public Button phaseDescriptionButton; // Add this
+    public List<Button> phaseButtons;  
+    public TMP_Text phaseDescriptionText; 
+    public Button phaseDescriptionButton; 
     private int currentPhase = 0;
     private bool showingNoisePollution = true;
     private Color defaultColor = new Color32(199, 212, 231, 255); // C7D4E7
@@ -23,12 +24,12 @@ public class UIHandler : MonoBehaviour
     // Scores voor elke fase
     private Dictionary<int, List<float>> phaseScores = new Dictionary<int, List<float>>()
     {
-        { 0, new List<float> { 8.6f, 10.0f, 8.7f, 10.0f, 10.0f, 10.0f, 7.5f } },
-        { 1, new List<float> { 9.0f, 8.7f, 8.7f, 10.0f, 10.0f, 10.0f, 8.3f } },
-        { 2, new List<float> { 9.0f, 8.7f, 8.9f, 10.0f, 8.4f, 10.0f, 7.5f } },
-        { 3, new List<float> { 9.0f, 8.7f, 8.9f, 9.0f, 8.4f, 10.0f, 7.6f } },
-        { 4, new List<float> { 9.0f, 8.7f, 8.9f, 9.0f, 8.9f, 10.0f, 7.6f } },
-        { 5, new List<float> { 9.0f, 8.7f, 9.0f, 9.0f, 9.0f, 9.0f, 8.6f } }
+        { 0, new List<float> { 7.5f } },
+        { 1, new List<float> { 8.3f } },
+        { 2, new List<float> { 7.5f } },
+        { 3, new List<float> { 7.6f } },
+        { 4, new List<float> { 7.6f } },
+        { 5, new List<float> { 8.6f } }
     };
 
     // Descriptions for each phase
@@ -127,12 +128,28 @@ public class UIHandler : MonoBehaviour
     public void SetActivePhase(int phaseIndex)
     {
         currentPhase = phaseIndex;
+        UpdatePhaseButtons(); 
         UpdateMaps(); 
         if (showingNoisePollution)
         {
             UpdateScores();
         }
         UpdatePhaseDescription();
+    }
+
+    private void UpdatePhaseButtons()
+    {
+        for (int i = 0; i < phaseButtons.Count; i++)
+        {
+            if (i == currentPhase)
+            {
+                phaseButtons[i].image.color = activeColor; 
+            }
+            else
+            {
+                phaseButtons[i].image.color = defaultColor; 
+            }
+        }
     }
 
     private void SwitchCanvas()
@@ -154,7 +171,7 @@ public class UIHandler : MonoBehaviour
         {
             List<float> scores = phaseScores[currentPhase];
             ggoScoresText.text = "GGO Score\nGeluidsoverlast verkeer\n";
-            ggoScoresText.text += $"\nCartesius driehoek: {scores[6]}\n";
+            ggoScoresText.text += $"\nCartesius driehoek: {scores[0]}\n";
             ggoScoresText.gameObject.SetActive(true); 
         }
         else

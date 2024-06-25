@@ -170,6 +170,13 @@ MonoBehaviour:
   - {fileID: 1619440202}
   ggoScoresText: {fileID: 1818199944}
   ggoScoreButton: {fileID: 1332429486}
+  phaseButtons:
+  - {fileID: 1942892671}
+  - {fileID: 428161668}
+  - {fileID: 677298735}
+  - {fileID: 1000892336}
+  - {fileID: 1832587437}
+  - {fileID: 1195925360}
   phaseDescriptionText: {fileID: 1618990588}
   phaseDescriptionButton: {fileID: 867627690}
 --- !u!4 &28446445
